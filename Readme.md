@@ -16,8 +16,8 @@ You have 10 minutes to complete all three stages before the bomb detonates!
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/TicTicBomb.git
-   cd TicTicBomb
+   git clone https://github.com/Praso28/SQLBomb.git
+   cd SQLBomb
    ```
 
 2. Install dependencies:
@@ -54,6 +54,14 @@ The game uses the following database tables:
 ## Technologies Used
 
 - Python
-- Streamlit for the frontend
+- Streamlit for the frontend and user interface
 - SQLite for the database (no installation required)
-- Flask for backend services
+- Card-themed design with engaging storyline
+
+## Features
+
+- Immersive storyline with character profiles
+- Tabbed interface for better organization of game elements
+- Story-based hints that provide guidance without giving away solutions
+- Advanced SQL examples that teach valuable database skills
+- Card-themed visual design for a cohesive gaming experience
