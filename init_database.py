@@ -13,14 +13,24 @@ def init_database():
     # Make sure the database directory exists
     os.makedirs(db_dir, exist_ok=True)
 
-    # Remove existing database file if it exists
-    if os.path.exists(db_path):
+    # Check if database already exists
+    db_exists = os.path.exists(db_path)
+
+    # In cloud environments, we might not want to remove the existing database
+    # Only remove if explicitly running this script directly
+    if db_exists and __name__ == "__main__":
         try:
             os.remove(db_path)
             print(f"Removed existing database file: {db_path}")
+            db_exists = False
         except Exception as e:
             print(f"Error removing existing database: {e}")
             sys.exit(1)
+
+    # If database exists and we're not running this script directly, exit early
+    if db_exists and __name__ != "__main__":
+        print(f"Database already exists at {db_path}. Skipping initialization.")
+        return
 
     # Create a new SQLite database
     try:

@@ -1,11 +1,18 @@
 import sqlite3
 import os
+import streamlit as st
 
 # Database file path
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'tictictomb.db')
 
+@st.cache_resource
 def connect_db():
     """Connect to SQLite database"""
+    # Check if database exists, if not initialize it
+    if not os.path.exists(DB_PATH):
+        from init_database import init_database
+        init_database()
+
     conn = sqlite3.connect(DB_PATH)
     return conn
 

@@ -12,7 +12,11 @@ In this game, you play as a special agent tasked with:
 
 You have 10 minutes to complete all three stages before the bomb detonates!
 
-## Setup Instructions
+## Play Online
+
+You can play the game online at: [SQL Bomb Defusal Game on Streamlit Cloud](https://sqlbomb.streamlit.app/)
+
+## Local Setup Instructions
 
 1. Clone the repository:
    ```
@@ -34,10 +38,6 @@ You have 10 minutes to complete all three stages before the bomb detonates!
    ```
    streamlit run app.py
    ```
-
-   This will start the app and provide you with URLs to access it:
-   - Local URL: http://localhost:8501 (for accessing on your own computer)
-   - Network URL: For accessing from other devices on your network
 
 ## Deployment Instructions
 
