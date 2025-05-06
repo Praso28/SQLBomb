@@ -1,6 +1,6 @@
 # SQL Bomb Defusal Game
 
-A game where players use SQL queries to defuse a virtual bomb. Test your SQL skills while racing against the clock to save the city!
+A game where players use SQL queries to defuse a virtual bomb. Test your SQL skills to save the city!
 
 ## Game Overview
 
@@ -9,8 +9,6 @@ In this game, you play as a special agent tasked with:
 1. Identifying the real bomb from several decoys using SQL queries
 2. Finding the defusal code by analyzing bomb components
 3. Identifying the culprit by cross-referencing access logs and suspect data
-
-You have 10 minutes to complete all three stages before the bomb detonates!
 
 ## Setup Instructions
 
@@ -83,7 +81,6 @@ The game uses the following database tables:
 - Python
 - Streamlit for the frontend and user interface
 - SQLite for the database (no installation required)
-- Card-themed design with engaging storyline
 
 ## Features
 
