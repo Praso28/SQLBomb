@@ -1,14 +1,10 @@
-import time
-
 def start_timer():
-    """Start a timer for the game"""
-    return time.time()
+    """Start a timer for the game - now just returns a placeholder value"""
+    return 1  # Placeholder value since we're removing the timer concept
 
 def calculate_time_taken(start_time):
-    """Calculate the time taken since the timer started"""
-    if start_time is None:
-        return 0
-    return int(time.time() - start_time)
+    """Calculate the time taken since the timer started - now just returns a placeholder value"""
+    return 0  # Placeholder value since we're removing the timer concept
 
 def format_time(seconds):
     """Format seconds into minutes and seconds"""

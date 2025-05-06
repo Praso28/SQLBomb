@@ -1,21 +1,21 @@
 import streamlit as st
-import time
-from backend.db import connect_db, execute_query
+import time  # Still needed for sleep function
+from backend.db import execute_query
 from backend.game_logic import validate_query, update_game_state
-from backend.utils import calculate_time_taken, format_time
+from backend.utils import format_time
 
 # Game storyline with rich narrative
 STORYLINE = {
     1: {
         "title": "Stage 1: Identify the Real Bomb",
         "description": "There are multiple bombs planted across the city. Use SQL queries to analyze the data and identify the real explosive device.",
-        "story": """Agent, this is Commander Hayes from Central Command. We've detected multiple explosive devices across the city, but our intel suggests only one is real - the others are decoys designed to waste our time.
+        "story": """Agent, this is Commander Hayes from Central Command. We've detected multiple explosive devices across the city, but our intel suggests only one is real - the others are decoys designed to mislead us.
 
 The Ace of Spades terrorist cell is known for their signature bomb design. Their devices always have cutting-edge components with high signal strength and battery levels. They also use a consistent frequency pattern to ensure detonation, and each bomb has a unique device signature code.
 
 Most importantly, their bombs are always maintained right before deployment - usually within 24 hours. The timestamp in our database will help you identify when each bomb was last serviced.
 
-Time is critical. Find the real bomb before it's too late.""",
+Your mission is to find the real bomb and save the city.""",
         "hint": "INTELLIGENCE REPORT #A-7: Our bomb squad technicians report that the Ace of Spades' real bombs always have signal strength above 95, battery levels above 90, and a perfectly consistent frequency pattern (all values identical). Their device signatures typically start with 'B9Z'. Check maintenance logs for recent activity - likely within the last day or two."
     },
     2: {
@@ -27,7 +27,7 @@ The bomb has multiple components, but our specialists believe the deactivation m
 
 The Ace of Spades always uses premium materials for their critical components - typically titanium or gold for the parts that control deactivation. The other components are made of cheaper materials to save costs.
 
-Find the defusal code hidden in the activation_code field of the critical component before the timer reaches zero!""",
+Find the defusal code hidden in the activation_code field of the critical component to safely disarm the bomb!""",
         "hint": "FIELD REPORT #C-12: I've analyzed the bomb's construction. Look for components made of either titanium or gold - those are the high-value parts. The defusal code will be in the activation_code field of either the Detonator or Circuit component. Be precise - entering the wrong code could trigger immediate detonation."
     },
     3: {
@@ -167,28 +167,11 @@ def main_app():
             transform: translateY(-2px);
         }
 
-        /* Timer styling */
-        .timer-normal {
+        /* Progress indicator styling */
+        .progress-indicator {
             color: var(--primary);
             font-weight: bold;
             font-size: 1.5rem;
-        }
-
-        .timer-warning {
-            color: var(--warning);
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-
-        .timer-danger {
-            color: var(--danger);
-            font-weight: bold;
-            font-size: 1.5rem;
-            animation: blinker 1s linear infinite;
-        }
-
-        @keyframes blinker {
-            50% { opacity: 0.7; }
         }
 
         /* Code and SQL styling */
@@ -280,19 +263,18 @@ def main_app():
     # Initialize session state first
     if 'game_state' not in st.session_state:
         st.session_state.game_state = {
-            'start_time': None,
+            'game_started': False,
             'current_stage': 1,
             'bomb_id': None,
             'clues_found': [],
             'game_completed': False,
             'last_query_results': None,
             'last_query': None,
-            'last_query_error': None,
-            'last_refresh': time.time()
+            'last_query_error': None
         }
 
     # Simple, clean header - only show on landing page
-    if st.session_state.game_state['start_time'] is None and not st.session_state.game_state['game_completed']:
+    if not st.session_state.game_state['game_started'] and not st.session_state.game_state['game_completed']:
         st.markdown("""
         <div style="text-align: center; padding: 20px 0;">
             <h1 style="font-size: 2.5rem; margin-bottom: 0;">💣 SQL Bomb Defusal Challenge</h1>
@@ -310,26 +292,8 @@ def main_app():
     if 'verification_answer' not in st.session_state:
         st.session_state.verification_answer = ""
 
-    # Timer implementation using Streamlit's native auto-refresh
-    # We'll use a simpler approach that's more reliable
-    if st.session_state.game_state['start_time'] is not None and not st.session_state.game_state['game_completed']:
-        # Store the current time in the session state for comparison
-        current_time = time.time()
-        last_refresh = st.session_state.game_state.get('last_refresh', 0)
-
-        # Calculate elapsed time directly
-        elapsed_time = int(current_time - st.session_state.game_state['start_time'])
-        st.session_state.elapsed_time = elapsed_time
-
-        # Only trigger rerun if enough time has passed (every second)
-        if current_time - last_refresh >= 1:
-            st.session_state.game_state['last_refresh'] = current_time
-            # Use Streamlit's rerun mechanism
-            time.sleep(0.1)  # Small delay to prevent excessive CPU usage
-            st.rerun()
-
     # Game Overview with simple dark theme
-    if st.session_state.game_state['start_time'] is None:
+    if not st.session_state.game_state['game_started']:
         # Create a dramatic storyline intro with card-themed design
         st.markdown("""
         <div style="background-color: #343a40; padding: 25px; border-radius: 5px; border-left: 4px solid #ff6b6b; margin: 20px 0; text-align: center;">
@@ -343,7 +307,7 @@ def main_app():
         _, center_col, _ = st.columns([1, 2, 1])
         with center_col:
             if st.button("🚀 START MISSION", key="start_mission", use_container_width=True):
-                st.session_state.game_state['start_time'] = time.time()
+                st.session_state.game_state['game_started'] = True
                 st.rerun()
 
         # Mission briefing with storyline elements
@@ -363,7 +327,7 @@ def main_app():
                 You've been selected for this mission because of your exceptional SQL skills. You'll need to analyze our database to identify the real bomb, find its defusal code, and track down the culprit.
             </p>
             <p style="color: #f8f9fa;">
-                The clock is ticking. You have 10 minutes before detonation.
+                Your mission is critical. The city's safety depends on your SQL skills.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -410,23 +374,10 @@ def main_app():
         # Game details with card-themed design
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Time limit and tools in a 2-column layout with card theme
-        col1, col2 = st.columns(2)
+        # Tools card
+        _, center_col, _ = st.columns([1, 2, 1])
 
-        with col1:
-            st.markdown("""
-            <div style="background-color: #343a40; padding: 15px; border-radius: 5px; border-left: 4px solid #ff6b6b;">
-                <div style="display: flex; align-items: center;">
-                    <span style="font-size: 28px; margin-right: 15px;">⏱️</span>
-                    <div>
-                        <h3 style="color: #ff6b6b; margin-top: 0;">Time Limit</h3>
-                        <p style="color: #f8f9fa;">10 minutes before detonation</p>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
+        with center_col:
             st.markdown("""
             <div style="background-color: #343a40; padding: 15px; border-radius: 5px; border-left: 4px solid #4dabf7;">
                 <div style="display: flex; align-items: center;">
@@ -472,13 +423,11 @@ def main_app():
         _, center_col, _ = st.columns([1, 2, 1])
         with center_col:
             if st.button("🚀 START MISSION", key="start_mission_bottom", use_container_width=True):
-                st.session_state.game_state['start_time'] = time.time()
+                st.session_state.game_state['game_started'] = True
                 st.rerun()
 
     # Game completed screen with simple dark theme
     elif st.session_state.game_state['game_completed']:
-        time_taken = calculate_time_taken(st.session_state.game_state['start_time'])
-        formatted_time = format_time(time_taken)
 
         # Show balloons for celebration
         st.balloons()
@@ -511,7 +460,7 @@ def main_app():
         st.markdown("<p style='margin-bottom: 15px;'>Subject: Operation Card Shark - SUCCESSFUL</p>", unsafe_allow_html=True)
 
         # Report body
-        st.markdown(f"<p style='margin-bottom: 15px;'>I'm pleased to report that our database specialist successfully completed all objectives of Operation Card Shark in {formatted_time}. The agent demonstrated exceptional SQL skills under extreme pressure.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='margin-bottom: 15px;'>I'm pleased to report that our database specialist successfully completed all objectives of Operation Card Shark. The agent demonstrated exceptional SQL skills and analytical thinking.</p>", unsafe_allow_html=True)
 
         st.markdown("<p style='margin-bottom: 15px;'>The real bomb was identified at the Airport location, defused with the correct activation code, and the suspect - Sarah Connor, a known associate of the Ace of Spades - has been apprehended by our field team.</p>", unsafe_allow_html=True)
 
@@ -547,10 +496,10 @@ def main_app():
                     <span style="font-size: 28px; margin-right: 15px;">♦</span>
                     <h3 style="color: #4dabf7; margin: 0;">Mission Stats</h3>
                 </div>
-                <p style="color: #f8f9fa; font-size: 16px;"><b>⏱️ Time taken:</b> {formatted_time}</p>
                 <p style="color: #f8f9fa; font-size: 16px;"><b>🏆 Status:</b> Success</p>
                 <p style="color: #f8f9fa; font-size: 16px;"><b>🔍 Evidence:</b> Collected</p>
                 <p style="color: #f8f9fa; font-size: 16px;"><b>👮 Suspect:</b> In custody</p>
+                <p style="color: #f8f9fa; font-size: 16px;"><b>🌆 City:</b> Saved</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -578,15 +527,14 @@ def main_app():
             if st.button("🔄 PLAY AGAIN", key="play_again", use_container_width=True):
                 # Reset game state
                 st.session_state.game_state = {
-                    'start_time': None,
+                    'game_started': False,
                     'current_stage': 1,
                     'bomb_id': None,
                     'clues_found': [],
                     'game_completed': False,
                     'last_query_results': None,
                     'last_query': None,
-                    'last_query_error': None,
-                    'last_refresh': time.time()
+                    'last_query_error': None
                 }
 
                 # Reset verification state
@@ -594,28 +542,15 @@ def main_app():
                 st.session_state.verification_stage = 0
                 st.session_state.verification_answer = ""
 
-                # Reset timer state
-                if 'elapsed_time' in st.session_state:
-                    del st.session_state.elapsed_time
-
                 st.rerun()
 
     # Gameplay
     else:
-        # Calculate time remaining using the elapsed time from session state
-        # This ensures more accurate and consistent timer updates
-        elapsed_time = getattr(st.session_state, 'elapsed_time', 0)
-        if elapsed_time == 0:  # Fallback if elapsed_time is not set yet
-            elapsed_time = calculate_time_taken(st.session_state.game_state['start_time'])
-
-        time_remaining = max(0, 600 - elapsed_time)
-        mins, secs = divmod(time_remaining, 60)
-
         # Current stage info
         current_stage = st.session_state.game_state['current_stage']
         stage = STORYLINE[current_stage]
 
-        # Create a header with stage number and timer
+        # Create a header with stage number
         st.markdown(f"""
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="display: flex; align-items: center;">
@@ -629,23 +564,8 @@ def main_app():
         </div>
         """, unsafe_allow_html=True)
 
-        # Create columns for timer layout
-        timer_col1, timer_col2 = st.columns([3, 1])
-
-        with timer_col1:
-            # Progress bar for timer - more efficient implementation
-            progress_percent = max(0, min(1, time_remaining / 600))  # Ensure value is between 0 and 1
-            st.progress(progress_percent)
-
-        with timer_col2:
-            # Display timer with color based on time remaining - more efficient implementation
-            timer_class = "timer-normal"
-            if time_remaining <= 120:
-                timer_class = "timer-danger"
-            elif time_remaining <= 300:
-                timer_class = "timer-warning"
-
-            st.markdown(f"<div class='{timer_class}' style='text-align: center;'>⏳ {mins:02}:{secs:02}</div>", unsafe_allow_html=True)
+        # Create a progress indicator for the stage
+        st.progress(current_stage / 3)  # 3 stages total
 
         # Check if verification is needed
         if st.session_state.verification_needed:
@@ -951,15 +871,13 @@ access_logs → bombs (via bomb_id)
         # Execute Query button logic
         if execute_btn:
             try:
-                conn = connect_db()
-
                 if validate_query(query):
                     # Store the query for display
                     st.session_state.game_state['last_query'] = query
                     st.session_state.game_state['last_query_error'] = None
 
                     # Execute the query
-                    results = execute_query(conn, query)
+                    results = execute_query(query)
 
                     # Store the results in session state
                     st.session_state.game_state['last_query_results'] = results
@@ -998,43 +916,11 @@ access_logs → bombs (via bomb_id)
                 # Store the error in session state
                 st.session_state.game_state['last_query_results'] = []
                 st.session_state.game_state['last_query_error'] = error_msg
-            finally:
-                if 'conn' in locals():
-                    conn.close()
 
             # Force a rerun to update the display
             st.rerun()
 
-        # Game Over Condition - more efficient implementation
-        if time_remaining <= 0:
-            # Create a prominent game over message
-            st.error("⏰ Time's up! The bomb has detonated.")
-
-            # Reset the game state
-            st.session_state.game_state = {
-                'start_time': None,
-                'current_stage': 1,
-                'bomb_id': None,
-                'clues_found': [],
-                'game_completed': False,
-                'last_query_results': None,
-                'last_query': None,
-                'last_query_error': None,
-                'last_refresh': time.time()
-            }
-
-            # Reset verification state
-            st.session_state.verification_needed = False
-            st.session_state.verification_stage = 0
-            st.session_state.verification_answer = ""
-
-            # Reset timer state
-            if 'elapsed_time' in st.session_state:
-                del st.session_state.elapsed_time
-
-            # Use a small delay to ensure the message is displayed before rerunning
-            time.sleep(0.5)
-            st.rerun()
+        # No game over condition needed since we removed the timer
 
 
 # Run the app

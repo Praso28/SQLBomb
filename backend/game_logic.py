@@ -1,9 +1,9 @@
-import time
 import re
 from backend.utils import check_stage_completion
 
 def start_timer():
-    return time.time()
+    """Start a timer for the game - now just returns a placeholder value"""
+    return 1  # Placeholder value since we're removing the timer concept
 
 def validate_query(query):
     """
